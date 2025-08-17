@@ -29,17 +29,10 @@ class VintedScraper {
     }
 
 async init() {
-    const puppeteer = require('puppeteer');
-    
-    // Use Puppeteer's browser fetcher to find the installed Chrome
-    const browserFetcher = puppeteer.createBrowserFetcher();
-    const revisionInfo = browserFetcher.revisionInfo('121.0.6167.85');
-    
-    console.log('Looking for Chrome at:', revisionInfo.executablePath);
+    console.log('Initializing browser...');
     
     this.browser = await puppeteer.launch({
         headless: 'new',
-        executablePath: revisionInfo.executablePath,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -49,6 +42,8 @@ async init() {
             '--disable-features=VizDisplayCompositor'
         ]
     });
+    
+    console.log('Browser initialized successfully!');
 }
 
     async close() {
