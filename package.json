@@ -7,7 +7,6 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "install-deps": "npm install",
-    "postinstall": "npx puppeteer browsers install chrome"
   },
   "keywords": [
     "vinted",
