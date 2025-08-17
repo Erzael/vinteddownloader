@@ -43,11 +43,16 @@ async init() {
         });
     } catch (error) {
         if (error.message.includes('Could not find Chrome')) {
-            console.log('Chrome not found, attempting to download...');
-            // Try to install Chrome programmatically
-            const { install } = require('puppeteer/browsers');
+            console.log('Chrome not found, attempting to download using child_process...');
+            const { execSync } = require('child_process');
             try {
-                await install({ browser: 'chrome', buildId: 'latest' });
+                // Install Chrome using the command line
+                execSync('npx puppeteer browsers install chrome', { 
+                    stdio: 'inherit',
+                    timeout: 120000 // 2 minutes timeout
+                });
+                console.log('Chrome installation completed, retrying browser launch...');
+                
                 // Try launching again
                 this.browser = await puppeteer.launch({
                     headless: 'new',
@@ -61,8 +66,8 @@ async init() {
                     ]
                 });
             } catch (installError) {
-                console.error('Failed to install Chrome:', installError);
-                throw error;
+                console.error('Failed to install Chrome via command line:', installError);
+                throw new Error('Could not install or find Chrome browser');
             }
         } else {
             throw error;
