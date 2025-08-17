@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinted Image Downloader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group input::placeholder {
+            color: #aaa;
+        }
+
+        .download-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .download-btn:active {
+            transform: translateY(0);
+        }
+
+        .download-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .status.show {
+            opacity: 1;
+        }
+
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .status.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .preview {
+            margin-top: 30px;
+            text-align: left;
+            display: none;
+        }
+
+        .preview.show {
+            display: block;
+        }
+
+        .preview h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .image-item {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📦</div>
+        <h1>Vinted Image Downloader</h1>
+        <p class="subtitle">Extract and download all images from any Vinted listing</p>
+        
+        <div class="input-group">
+            <input 
+                type="url" 
+                id="urlInput" 
+                placeholder="Paste Vinted listing URL here..."
+                required
+            >
+        </div>
+        
+        <button class="download-btn" id="downloadBtn">
+            Extract Images
+        </button>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="preview" id="preview">
+            <h3 id="listingTitle"></h3>
+            <div class="image-grid" id="imageGrid"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        class VintedImageDownloader {
+            constructor() {
+                this.urlInput = document.getElementById('urlInput');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.status = document.getElementById('status');
+                this.preview = document.getElementById('preview');
+                this.listingTitle = document.getElementById('listingTitle');
+                this.imageGrid = document.getElementById('imageGrid');
+                
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                this.downloadBtn.addEventListener('click', () => this.processListing());
+                this.urlInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.processListing();
+                });
+            }
+
+            showStatus(message, type = 'loading') {
+                this.status.className = `status ${type} show`;
+                if (type === 'loading') {
+                    this.status.innerHTML = `<span class="spinner"></span>${message}`;
+                } else {
+                    this.status.textContent = message;
+                }
+            }
+
+            hideStatus() {
+                this.status.className = 'status';
+            }
+
+            async processListing() {
+                const url = this.urlInput.value.trim();
+                
+                if (!url) {
+                    this.showStatus('Please enter a Vinted URL', 'error');
+                    return;
+                }
+
+                if (!this.isValidVintedUrl(url)) {
+                    this.showStatus('Please enter a valid Vinted.dk URL', 'error');
+                    return;
+                }
+
+                try {
+                    this.downloadBtn.disabled = true;
+                    this.showStatus('Fetching listing data...');
+                    
+                    // In a real implementation, you'd need a backend service
+                    // This is a demo showing the frontend structure
+                    await this.simulateExtraction(url);
+                    
+                } catch (error) {
+                    this.showStatus(`Error: ${error.message}`, 'error');
+                } finally {
+                    this.downloadBtn.disabled = false;
+                }
+            }
+
+            isValidVintedUrl(url) {
+                try {
+                    const urlObj = new URL(url);
+                    return urlObj.hostname.includes('vinted.dk') || 
+                           urlObj.hostname.includes('vinted.com') ||
+                           urlObj.hostname.includes('vinted.');
+                } catch {
+                    return false;
+                }
+            }
+
+            async simulateExtraction(url) {
+                try {
+                    // Call the backend API
+                    const response = await fetch('/api/extract-images', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ url })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to extract images');
+                    }
+
+                    const data = await response.json();
+                    
+                    // Show success message
+                    this.showStatus(`Found ${data.imageCount} images from "${data.title}"`, 'success');
+                    
+                    // Start download
+                    this.downloadFromUrl(data.downloadUrl, data.title);
+                    
+                } catch (error) {
+                    throw new Error(error.message);
+                }
+            }
+
+            downloadFromUrl(downloadUrl, title) {
+                // Create download link
+                const downloadLink = document.createElement('a');
+                downloadLink.href = downloadUrl;
+                downloadLink.download = `${this.sanitizeFilename(title)}_images.zip`;
+                downloadLink.style.display = 'none';
+                
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                this.showStatus('Download started! Check your downloads folder.', 'success');
+                setTimeout(() => this.hideStatus(), 5000);
+            }
+
+            sanitizeFilename(filename) {
+                return filename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            }
+
+            showPreview(data) {
+                this.listingTitle.textContent = data.title;
+                this.imageGrid.innerHTML = '';
+                
+                data.images.forEach((imgUrl, index) => {
+                    const imageItem = document.createElement('div');
+                    imageItem.className = 'image-item';
+                    
+                    const img = document.createElement('img');
+                    img.src = imgUrl;
+                    img.alt = `Image ${index + 1}`;
+                    img.loading = 'lazy';
+                    
+                    imageItem.appendChild(img);
+                    this.imageGrid.appendChild(imageItem);
+                });
+                
+                this.preview.classList.add('show');
+            }
+
+            async createAndDownloadZip(data) {
+                this.showStatus('Creating ZIP file...');
+                
+                const zip = new JSZip();
+                const imagePromises = [];
+
+                // In a real implementation, you'd fetch actual images from your backend
+                // This demo shows the structure
+                data.images.forEach((imgUrl, index) => {
+                    const promise = this.fetchImageAsBlob(imgUrl)
+                        .then(blob => {
+                            const extension = this.getImageExtension(imgUrl);
+                            zip.file(`image_${index + 1}.${extension}`, blob);
+                        })
+                        .catch(error => {
+                            console.error(`Failed to fetch image ${index + 1}:`, error);
+                        });
+                    
+                    imagePromises.push(promise);
+                });
+
+                await Promise.allSettled(imagePromises);
+
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                this.downloadZip(zipBlob, data.title);
+                
+                this.showStatus('Images downloaded successfully!', 'success');
+                setTimeout(() => this.hideStatus(), 3000);
+            }
+
+            async fetchImageAsBlob(url) {
+                // In a real implementation, this would go through your backend
+                // to avoid CORS issues
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.blob();
+            }
+
+            getImageExtension(url) {
+                const extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                for (const ext of extensions) {
+                    if (url.toLowerCase().includes(`.${ext}`)) {
+                        return ext;
+                    }
+                }
+                return 'jpg'; // default
+            }
+
+            downloadZip(zipBlob, title) {
+                const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const fileName = `${sanitizedTitle}_images.zip`;
+                
+                const downloadLink = document.createElement('a');
+                downloadLink.href = URL.createObjectURL(zipBlob);
+                downloadLink.download = fileName;
+                downloadLink.style.display = 'none';
+                
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // Clean up the object URL
+                URL.revokeObjectURL(downloadLink.href);
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new VintedImageDownloader();
+        });
+
+        // Add some helpful information
+        console.log(`
+🚀 Vinted Image Downloader - Full Stack Application
+
+✅ This version connects to a Node.js backend that:
+- Scrapes Vinted listings using Puppeteer
+- Downloads all images from the listing
+- Creates ZIP files for download
+- Handles CORS and security
+
+🔧 To run this application:
+1. Save the backend code as 'server.js'
+2. Save the package.json file
+3. Run: npm install
+4. Run: npm start
+5. Open http://localhost:3000
+
+📝 Note: Make sure to create a 'public' folder and put this HTML file inside it.
+        `);
+    </script>
+</body>
+</html>
