@@ -10,15 +10,9 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-const browser = await puppeteer.launch({
-  headless: 'new',
-  args: [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-dev-shm-usage',
-    '--disable-gpu'
-  ]
-});
+const browser = await puppeteer.launch({ executablePath: '/usr/bin/chromium' })
+
+
 
 // Middleware
 app.use(cors());
