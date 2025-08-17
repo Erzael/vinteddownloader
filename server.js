@@ -29,50 +29,41 @@ class VintedScraper {
     }
 
 async init() {
-    try {
-        this.browser = await puppeteer.launch({
-            headless: 'new',
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-gpu',
-                '--disable-web-security',
-                '--disable-features=VizDisplayCompositor'
-            ]
-        });
-    } catch (error) {
-        if (error.message.includes('Could not find Chrome')) {
-            console.log('Chrome not found, attempting to download using child_process...');
-            const { execSync } = require('child_process');
-            try {
-                // Install Chrome using the command line
-                execSync('npx puppeteer browsers install chrome', { 
-                    stdio: 'inherit',
-                    timeout: 120000 // 2 minutes timeout
-                });
-                console.log('Chrome installation completed, retrying browser launch...');
-                
-                // Try launching again
-                this.browser = await puppeteer.launch({
-                    headless: 'new',
-                    args: [
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--disable-gpu',
-                        '--disable-web-security',
-                        '--disable-features=VizDisplayCompositor'
-                    ]
-                });
-            } catch (installError) {
-                console.error('Failed to install Chrome via command line:', installError);
-                throw new Error('Could not install or find Chrome browser');
+    // Check if Chrome is already installed in the project cache
+    const fs = require('fs');
+    const path = require('path');
+    
+    let executablePath;
+    const chromePaths = [
+        '/opt/render/project/src/.cache/puppeteer/chrome/linux-121.0.6167.85/chrome-linux64/chrome',
+        '/opt/render/.cache/puppeteer/chrome/linux-121.0.6167.85/chrome-linux64/chrome'
+    ];
+    
+    // Check which Chrome path exists
+    for (const chromePath of chromePaths) {
+        try {
+            if (fs.existsSync(chromePath)) {
+                executablePath = chromePath;
+                console.log(`Found Chrome at: ${executablePath}`);
+                break;
             }
-        } else {
-            throw error;
+        } catch (error) {
+            console.log(`Chrome not found at: ${chromePath}`);
         }
     }
+    
+    this.browser = await puppeteer.launch({
+        headless: 'new',
+        executablePath: executablePath,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor'
+        ]
+    });
 }
 
     async close() {
