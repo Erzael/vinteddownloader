@@ -29,21 +29,45 @@ class VintedScraper {
     }
 
 async init() {
-    console.log('NODE_ENV:', process.env.NODE_ENV);
-    console.log('PUPPETEER_EXECUTABLE_PATH:', process.env.PUPPETEER_EXECUTABLE_PATH);
-    console.log('PUPPETEER_CACHE_DIR:', process.env.PUPPETEER_CACHE_DIR);
-    
-    this.browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--disable-web-security',
-            '--disable-features=VizDisplayCompositor'
-        ]
-    });
+    try {
+        this.browser = await puppeteer.launch({
+            headless: 'new',
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--disable-web-security',
+                '--disable-features=VizDisplayCompositor'
+            ]
+        });
+    } catch (error) {
+        if (error.message.includes('Could not find Chrome')) {
+            console.log('Chrome not found, attempting to download...');
+            // Try to install Chrome programmatically
+            const { install } = require('puppeteer/browsers');
+            try {
+                await install({ browser: 'chrome', buildId: 'latest' });
+                // Try launching again
+                this.browser = await puppeteer.launch({
+                    headless: 'new',
+                    args: [
+                        '--no-sandbox',
+                        '--disable-setuid-sandbox',
+                        '--disable-dev-shm-usage',
+                        '--disable-gpu',
+                        '--disable-web-security',
+                        '--disable-features=VizDisplayCompositor'
+                    ]
+                });
+            } catch (installError) {
+                console.error('Failed to install Chrome:', installError);
+                throw error;
+            }
+        } else {
+            throw error;
+        }
+    }
 }
 
     async close() {
