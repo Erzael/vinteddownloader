@@ -10,6 +10,16 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+const browser = await puppeteer.launch({
+  headless: 'new',
+  args: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-gpu'
+  ]
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -41,7 +51,7 @@ class VintedScraper {
     }
 
     async close() {
-        if (this.browser) {
+        if (this.) {
             await this.browser.close();
         }
     }
