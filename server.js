@@ -30,7 +30,7 @@ class VintedScraper {
 
 async init() {
     this.browser = await puppeteer.launch({
-        headless: 'new',
+        headless: 'new',  // This fixes the deprecation warning too
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -39,6 +39,7 @@ async init() {
             '--disable-web-security',
             '--disable-features=VizDisplayCompositor'
         ]
+        // Remove any executablePath - let Puppeteer use its bundled Chrome
     });
 }
 
