@@ -29,28 +29,37 @@ class VintedScraper {
     }
 
 async init() {
-    // Check if Chrome is already installed in the project cache
     const fs = require('fs');
     const path = require('path');
+    const glob = require('glob');
     
     let executablePath;
-    const chromePaths = [
-        '/opt/render/project/src/.cache/puppeteer/chrome/linux-121.0.6167.85/chrome-linux64/chrome',
-        '/opt/render/.cache/puppeteer/chrome/linux-121.0.6167.85/chrome-linux64/chrome'
-    ];
     
-    // Check which Chrome path exists
-    for (const chromePath of chromePaths) {
-        try {
-            if (fs.existsSync(chromePath)) {
-                executablePath = chromePath;
-                console.log(`Found Chrome at: ${executablePath}`);
-                break;
+    try {
+        // Look for Chrome in the project's cache directory
+        const cacheDir = '/opt/render/project/src/.cache/puppeteer';
+        
+        // Find Chrome executable using glob pattern
+        const chromePattern = path.join(cacheDir, 'chrome/linux-*/chrome-linux64/chrome');
+        const chromeFiles = glob.sync(chromePattern);
+        
+        if (chromeFiles.length > 0) {
+            executablePath = chromeFiles[0];
+            console.log(`Found Chrome at: ${executablePath}`);
+        } else {
+            // Fallback to specific version path
+            const specificPath = '/opt/render/project/src/.cache/puppeteer/chrome/linux-121.0.6167.85/chrome-linux64/chrome';
+            if (fs.existsSync(specificPath)) {
+                executablePath = specificPath;
+                console.log(`Found Chrome at specific path: ${executablePath}`);
             }
-        } catch (error) {
-            console.log(`Chrome not found at: ${chromePath}`);
         }
+        
+    } catch (error) {
+        console.log('Error finding Chrome:', error.message);
     }
+    
+    console.log('Using executablePath:', executablePath);
     
     this.browser = await puppeteer.launch({
         headless: 'new',
