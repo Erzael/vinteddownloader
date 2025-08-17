@@ -10,7 +10,7 @@ const { v4: uuidv4 } = require('uuid');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-const browser = await puppeteer.launch({ executablePath: '/usr/bin/chromium' })
+
 
 
 
@@ -28,24 +28,27 @@ class VintedScraper {
         this.browser = null;
     }
 
-    async init() {
-        this.browser = await puppeteer.launch({
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-gpu'
-            ]
-        });
-    }
+async init() {
+    this.browser = await puppeteer.launch({
+        headless: 'new',
+        executablePath: process.env.NODE_ENV === 'production' 
+            ? '/opt/render/.cache/puppeteer/chrome/linux-*/chrome-linux64/chrome'
+            : undefined,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--single-process',
+            '--disable-gpu'
+        ]
+    });
+}
 
     async close() {
-        if (this.) {
+        if (this.browser) {
             await this.browser.close();
         }
     }
