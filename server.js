@@ -29,8 +29,12 @@ class VintedScraper {
     }
 
 async init() {
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    console.log('PUPPETEER_EXECUTABLE_PATH:', process.env.PUPPETEER_EXECUTABLE_PATH);
+    console.log('PUPPETEER_CACHE_DIR:', process.env.PUPPETEER_CACHE_DIR);
+    
     this.browser = await puppeteer.launch({
-        headless: 'new',  // This fixes the deprecation warning too
+        headless: 'new',
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -39,7 +43,6 @@ async init() {
             '--disable-web-security',
             '--disable-features=VizDisplayCompositor'
         ]
-        // Remove any executablePath - let Puppeteer use its bundled Chrome
     });
 }
 
