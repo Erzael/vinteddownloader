@@ -31,18 +31,13 @@ class VintedScraper {
 async init() {
     this.browser = await puppeteer.launch({
         headless: 'new',
-        executablePath: process.env.NODE_ENV === 'production' 
-            ? '/opt/render/.cache/puppeteer/chrome/linux-*/chrome-linux64/chrome'
-            : undefined,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process',
-            '--disable-gpu'
+            '--disable-gpu',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor'
         ]
     });
 }
